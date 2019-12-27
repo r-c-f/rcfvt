@@ -69,11 +69,11 @@ bool argv_write(int fd, int argc, char **argv)
 		}
 	}
 
-	if (write_full(fd, &argc, sizeof(int)) < 1)
+	if (write_full(fd, &argc, sizeof(argc)) < 1)
 		return false;
 	while (*argv) {
 		arglen = strlen(*argv);
-		if (write_full(fd, &arglen, sizeof(size_t)) < 1)
+		if (write_full(fd, &arglen, sizeof(arglen)) < 1)
 			return false;
 		if (write_full(fd, *argv, arglen) < 1)
 			return false;
@@ -91,7 +91,7 @@ char **argv_read(int fd)
 	size_t arglen;
 	char **argv;
 
-	if (read_full(fd, &argc, sizeof(int)) < 1)
+	if (read_full(fd, &argc, sizeof(argc)) < 1)
 		return NULL;
 	if (!argc)
 		return NULL; //not an error - just empty.
@@ -99,7 +99,7 @@ char **argv_read(int fd)
 	argv = g_new0(char *, argc + 1); //argc + 1 for NULL termination
 
 	for (i = 0; i < argc; ++i) {
-		if (read_full(fd, &arglen, sizeof(size_t)) < 1)
+		if (read_full(fd, &arglen, sizeof(arglen)) < 1)
 			goto argv_read_err;
 		argv[i] = g_malloc(arglen + 1);
 		if (read_full(fd, argv[i], arglen + 1) < 1)

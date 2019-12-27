@@ -199,7 +199,7 @@ bool term_start(GSList **l, char **argv)
 	}
 
 	//create terminal and such
-	struct term *t = g_malloc(sizeof(struct term));
+	struct term *t = g_malloc(sizeof(*t));
 	*l = g_slist_append(*l, t);
 	t->win = GTK_WINDOW(gtk_window_new(GTK_WINDOW_TOPLEVEL));
 	t->vte = VTE_TERMINAL(vte_terminal_new());
@@ -260,7 +260,7 @@ int main(int argc, char **argv)
 
 	gtk_init(&argc, &argv);
 
-	conf = g_malloc0(sizeof(struct config));
+	conf = g_malloc0(sizeof(*conf));
 	conf_load(conf);
 
 	sopt_usage_set(optspec, argv[0], "my custom terminal emulator");

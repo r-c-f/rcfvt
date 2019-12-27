@@ -169,11 +169,13 @@ static inline void sopt_usage_s(void)
  * 	array of possible option structures
  * cpos:
  * 	Stores the current position in a combined argument, i.e. -abcd.
- * 	MUST BE ZERO WHEN FIRST CALLED
+ * 	If NULL, new int is allocated.
+ * 	If not NULL, MUST be zero on first call. 
  * optind:
  * 	Current position in the argv array. At end of processing, will point
  * 	to first non-parsed argument.
- * 	MUST BE ZERO WHEN FIRST CALLED
+ * 	If NULL, new int is allocated.
+ * 	If not NULL, MUST be zero on first call.
  * optartg:
  * 	Pointer to any parameter given after the argument.
  *
