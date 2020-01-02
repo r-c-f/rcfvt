@@ -19,11 +19,10 @@ static ssize_t read_full(int fd, void *buf, size_t count)
 {
 	size_t pos = 0;
 	ssize_t ret;
-	unsigned char *buf_c = buf; //avoid UB yo
 
 	while (pos < count) {
 		errno = 0;
-		ret = read(fd, buf_c + pos, count - pos);
+		ret = read(fd, (char*)buf + pos, count - pos);
 		if (ret < 1) {
 			if (errno == EINTR)
 				continue;
@@ -37,11 +36,10 @@ static ssize_t write_full(int fd, const void *buf, size_t count)
 {
 	size_t pos = 0;
 	ssize_t ret;
-	const unsigned char *buf_c = buf; //avoid UB yo
 
 	while (pos < count) {
 		errno = 0;
-		ret = write(fd, buf_c + pos, count - pos);
+		ret = write(fd, (const char*)buf + pos, count - pos);
 		if (ret < 1) {
 			if (errno == EINTR)
 				continue;
