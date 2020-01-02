@@ -8,7 +8,10 @@
 #include <stdlib.h>
 #include <ctype.h>
 
-#define SOPT_INVAL 0
+/* By setting SOPT_INVAL to '?', and terminating with it, we ensure that --
+ * should a simple search through the option array yield no match, the final
+ * element will have the value '?'*/
+#define SOPT_INVAL '?'
 #define SOPT_AFTER -1
 
 struct sopt {
@@ -169,13 +172,11 @@ static inline void sopt_usage_s(void)
  * 	array of possible option structures
  * cpos:
  * 	Stores the current position in a combined argument, i.e. -abcd.
- * 	If NULL, new int is allocated.
- * 	If not NULL, MUST be zero on first call. 
+ * 	*cpos MUST BE ZERO ON FIRST CALL
  * optind:
  * 	Current position in the argv array. At end of processing, will point
  * 	to first non-parsed argument.
- * 	If NULL, new int is allocated.
- * 	If not NULL, MUST be zero on first call.
+ * 	*optind MUST BE ZERO ON FIRST CALL
  * optartg:
  * 	Pointer to any parameter given after the argument.
  *
@@ -185,8 +186,6 @@ static inline void sopt_usage_s(void)
  */
 static int sopt_getopt(int argc, char **argv, struct sopt *opt, int *cpos, int *optind, char **optarg)
 {
-	bool found = false;
-
 	if (!(opt && cpos &&argv && optind && optarg && argc))
 		return -1;
 	/* handle the case of combined arguments */
@@ -208,10 +207,8 @@ static int sopt_getopt(int argc, char **argv, struct sopt *opt, int *cpos, int *
 		for (; SOPT_VALID(opt); ++opt) {
 			/*don't want to be passing NULL to strcmp, now do we?*/
 			if (opt->name) {
-				if (!strcmp(opt->name, argv[*optind] + 2)) {
-					found = true;
+				if (!strcmp(opt->name, argv[*optind] + 2))
 					break;
-				}
 			}
 		}
 	} else {
@@ -222,10 +219,8 @@ shortopt:
 			*cpos = 1;
 		/* find our shortopt */
 		for (; SOPT_VALID(opt); ++opt) {
-			if (opt->val == argv[*optind][*cpos]) {
-				found = true;
+			if (opt->val == argv[*optind][*cpos])
 				break;
-			}
 		}
 		/* check if we're ina combined option */
 		if (argv[*optind][++*cpos]) {
@@ -237,8 +232,6 @@ shortopt:
 			*cpos = 0;
 		}
 	}
-	if (!found)
-		return '?';
 	*optarg = opt->param ? argv[++*optind] : NULL;
 	return opt->val;
 }
