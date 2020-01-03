@@ -17,10 +17,12 @@ extern bool term_start(GSList **l, char **argv);
 /* functions to do read/write without shortness */
 static ssize_t read_full(int fd, void *buf, size_t count)
 {
-	size_t pos = 0;
-	ssize_t ret;
+	ssize_t pos, ret;
 
-	while (pos < count) {
+	if (count >= SSIZE_MAX)
+		return -1;
+
+	for (pos = 0; pos < count;) {
 		errno = 0;
 		ret = read(fd, (char*)buf + pos, count - pos);
 		if (ret < 1) {
@@ -34,10 +36,12 @@ static ssize_t read_full(int fd, void *buf, size_t count)
 }
 static ssize_t write_full(int fd, const void *buf, size_t count)
 {
-	size_t pos = 0;
-	ssize_t ret;
+	ssize_t pos, ret;
 
-	while (pos < count) {
+	if (count >= SSIZE_MAX)
+		return -1;
+
+	for (pos = 0; pos < count;) {
 		errno = 0;
 		ret = write(fd, (const char*)buf + pos, count - pos);
 		if (ret < 1) {
