@@ -9,50 +9,10 @@
 #include <glib.h>
 #include <sys/stat.h>
 #include "ipc.h"
-
+#include "fdio_full.h"
 
 //forward declaration for term_start
 extern bool term_start(GSList **l, char **argv);
-
-/* functions to do read/write without shortness */
-static ssize_t read_full(int fd, void *buf, size_t count)
-{
-	ssize_t pos, ret;
-
-	if (count >= SSIZE_MAX)
-		return -1;
-
-	for (pos = 0; pos < count;) {
-		errno = 0;
-		ret = read(fd, (char*)buf + pos, count - pos);
-		if (ret < 1) {
-			if (errno == EINTR)
-				continue;
-			return -1;
-		}
-		pos += ret;
-	}
-	return pos;
-}
-static ssize_t write_full(int fd, const void *buf, size_t count)
-{
-	ssize_t pos, ret;
-
-	if (count >= SSIZE_MAX)
-		return -1;
-
-	for (pos = 0; pos < count;) {
-		errno = 0;
-		ret = write(fd, (const char*)buf + pos, count - pos);
-		if (ret < 1) {
-			if (errno == EINTR)
-				continue;
-			return -1;
-		}
-		pos += ret;
-	}
-	return pos;
-}
 
 /* write argv array */
 bool argv_write(int fd, int argc, char **argv)
@@ -71,15 +31,15 @@ bool argv_write(int fd, int argc, char **argv)
 		}
 	}
 
-	if (write_full(fd, &argc, sizeof(argc)) < 1)
+	if (!write_full(fd, &argc, sizeof(argc)))
 		return false;
 	while (*argv) {
 		arglen = strlen(*argv);
-		if (write_full(fd, &arglen, sizeof(arglen)) < 1)
+		if (!write_full(fd, &arglen, sizeof(arglen)))
 			return false;
-		if (write_full(fd, *argv, arglen) < 1)
+		if (!write_full(fd, *argv, arglen))
 			return false;
-		if (write_full(fd, &nul, 1) < 1)
+		if (!write_full(fd, &nul, 1))
 			return false;
 		++argv;
 	}
@@ -93,7 +53,7 @@ char **argv_read(int fd)
 	size_t arglen;
 	char **argv;
 
-	if (read_full(fd, &argc, sizeof(argc)) < 1)
+	if (!read_full(fd, &argc, sizeof(argc)))
 		return NULL;
 	if (!argc)
 		return NULL; //not an error - just empty.
@@ -101,10 +61,10 @@ char **argv_read(int fd)
 	argv = g_new0(char *, argc + 1); //argc + 1 for NULL termination
 
 	for (i = 0; i < argc; ++i) {
-		if (read_full(fd, &arglen, sizeof(arglen)) < 1)
+		if (!read_full(fd, &arglen, sizeof(arglen)))
 			goto argv_read_err;
 		argv[i] = g_malloc(arglen + 1);
-		if (read_full(fd, argv[i], arglen + 1) < 1)
+		if (!read_full(fd, argv[i], arglen + 1))
 			goto argv_read_err;
 		if (argv[i][arglen] != '\0')
 			goto argv_read_err; //we've lost sync
