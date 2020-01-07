@@ -14,6 +14,7 @@
 #include "config.h"
 #include "ipc.h"
 #include "sopt.h"
+#include "fdio_full.h"
 #ifdef HAVE_CANBERRA
 #include <canberra.h>
 #endif
@@ -38,7 +39,7 @@ void update_visuals(GtkWidget *win) {
 void clear_shell(VteTerminal *vte) {
 	vte_terminal_reset(vte, TRUE, TRUE);
 	VtePty *pty = vte_terminal_get_pty(vte);
-	write(vte_pty_get_fd(pty), "\x0C", 1);
+	write_full(vte_pty_get_fd(pty), "\x0C", 1);
 }
 
 // on_select_clipboard will copy the selected text to clipboard
