@@ -271,11 +271,11 @@ int main(int argc, char **argv)
 				break;
 			case 'F':
 				g_free(conf->fifo_path);
-				conf->fifo_path = strdup(optarg);
+				conf->fifo_path = g_strdup(optarg);
 				break;
 			case 'f':
 				g_free(conf->theme.font);
-				conf->theme.font = strdup(optarg);
+				conf->theme.font = g_strdup(optarg);
 				break;
 			case 'h':
 				sopt_usage_s();

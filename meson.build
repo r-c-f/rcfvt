@@ -6,5 +6,5 @@ if canberradep.found()
   add_global_arguments('-DHAVE_CANBERRA=1', language : 'c')
 endif
 
-executable('rcfvt', ['src/main.c','src/config.c', 'src/ipc.c'], dependencies : [vtedep, canberradep])
+executable('rcfvt', ['src/main.c','src/config.c', 'src/ipc.c'], install: true, dependencies : [vtedep, canberradep])
 
