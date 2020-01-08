@@ -138,8 +138,6 @@ gboolean on_fifo_data(GIOChannel *source, GIOCondition condition, gpointer data)
 bool server_start(char *fifo_path, GSList **terms)
 {
 	GIOChannel *fifo;
-	GError *err;
-	GIOFlags flags;
 	int fifo_fd;
 
 	unlink(fifo_path);
@@ -150,11 +148,6 @@ bool server_start(char *fifo_path, GSList **terms)
 		return false;
 	}
 	fifo = g_io_channel_unix_new(fifo_fd);
-	flags = g_io_channel_get_flags(fifo);
-	err = NULL;
-	g_io_channel_set_flags(fifo, flags | G_IO_FLAG_NONBLOCK, &err);
-	if (err)
-		return false;
 	g_io_add_watch(fifo, G_IO_IN, on_fifo_data, terms);
 
 	return true;
