@@ -141,9 +141,9 @@ bool server_start(char *fifo_path, GSList **terms)
 	int fifo_fd;
 
 	unlink(fifo_path);
-	if (mkfifo(fifo_path, 0700))
+	if (mkfifo(fifo_path, 0600))
 		return false;
-	if ((fifo_fd = open(fifo_path, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR)) == -1) {
+	if ((fifo_fd = open(fifo_path, O_RDWR)) == -1) {
 		unlink(fifo_path);
 		return false;
 	}
