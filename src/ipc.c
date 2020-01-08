@@ -143,6 +143,13 @@ bool server_start(char *fifo_path, GSList **terms)
 	unlink(fifo_path);
 	if (mkfifo(fifo_path, 0600))
 		return false;
+	/* POSIX says this is bad. It probably is. Yet it is necessary to open
+	 * rw to allow
+	 *  1) Non-blocking behavior on open, and
+	 *  2) data to be cleared from the buffer on read() on FreeBSD.
+	 *
+	 * The first makes sense, fuck if I can understand why the second is
+	 * happening. FIXME eventually, maybe... */
 	if ((fifo_fd = open(fifo_path, O_RDWR)) == -1) {
 		unlink(fifo_path);
 		return false;
