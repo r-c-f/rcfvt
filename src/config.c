@@ -159,10 +159,8 @@ static bool conf_load_theme(struct theme *theme, GKeyFile *conf)
         char key[4];
         size_t i;
         int missing = 0;
-	GError *err = NULL;
-	theme->font = g_key_file_get_string(conf, "theme", "font", &err);
-	if (err)
-		theme->font = DEFAULT_FONT;
+	KEYFILE_TRY_GET(conf, "theme", "font", theme->font, DEFAULT_FONT);
+	KEYFILE_TRY_GET(conf, "theme", "opacity", theme->opacity, DEFAULT_OPACITY);
         conf_theme_set_size(theme, conf);
         for (i = 0; i < theme->size; ++i) {
                 snprintf(key, 4, "%zd", i);
@@ -188,7 +186,6 @@ void conf_load(struct config *conf)
 	g_key_file_load_from_data(kf, conf_buf, (gsize)-1, G_KEY_FILE_NONE, NULL);
 
 	KEYFILE_TRY_GET(kf, "main", "shell", conf->shell,default_shell); 
-        KEYFILE_TRY_GET(kf, "main", "opacity", conf->opacity, DEFAULT_OPACITY);
 	KEYFILE_TRY_GET(kf, "main", "scrollback", conf->scrollback, DEFAULT_SCROLLBACK);
 	KEYFILE_TRY_GET(kf, "main", "spawn_timeout", conf->spawn_timeout, DEFAULT_SPAWN_TIMEOUT);
 	KEYFILE_TRY_GET(kf, "main", "select_to_clipboard", conf->select_to_clipboard, false);

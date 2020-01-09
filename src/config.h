@@ -15,6 +15,7 @@
 
 // Theme configuration
 struct theme {
+	double opacity;
         GdkRGBA fg, bg;
         GdkRGBA colors[256];
 	char *font;
@@ -24,7 +25,6 @@ struct theme {
 
 struct config {
 	char *shell;
-	double opacity;
 	int scrollback;
 	int spawn_timeout;
 	bool select_to_clipboard;

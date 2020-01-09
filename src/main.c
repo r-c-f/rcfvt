@@ -223,6 +223,18 @@ bool term_start(GSList **l, char **argv)
 		vte_terminal_set_colors(t->vte, &(conf->theme.fg), &(conf->theme.bg), conf->theme.colors, conf->theme.size);
 		vte_terminal_set_bold_is_bright(t->vte, conf->theme.bold_is_bright);
 	}
+	//specifically, transparency
+	if (conf->theme.opacity < 1) {
+		GdkScreen *screen = gdk_screen_get_default();
+                if (!gdk_screen_is_composited(screen)) {
+                        g_warning("unable to enable transparency");
+                } else {
+                        g_signal_connect(t->win, "screen-changed", G_CALLBACK(on_screen_change), NULL);
+                        update_visuals(GTK_WIDGET(t->win));
+                        gtk_widget_set_app_paintable(GTK_WIDGET(t->win), TRUE);
+                        gtk_widget_set_opacity(GTK_WIDGET(t->win), conf->theme.opacity);
+                }
+	}
 	//Set other options
 	vte_terminal_set_audible_bell(t->vte, conf->beep_bell);
 	vte_terminal_set_allow_hyperlink(t->vte, conf->url_osc8);
@@ -246,6 +258,7 @@ static struct sopt optspec[] = {
 	SOPT_INIT_FLAGL('s', "separate", "Run separate instance, even in single process mode"),
 	SOPT_INIT_PARAML('f', "font", "font", "Font and size to use, overriding configuration"),
 	SOPT_INIT_PARAML('F', "fifo", "fifo", "In single-process mode use fifo as path to control FIFO"),
+	SOPT_INIT_PARAML('o', "opacity", "opacity", "Enable given transparency"),
 	SOPT_INIT_AFTER("[command]", "command to run instead of shell"),
 	SOPT_INIT_END
 };
@@ -255,6 +268,7 @@ int main(int argc, char **argv)
 	int opt, optind = 0, optpos = 0;
 	char **sh_argv = NULL, *optarg;
 	int sh_argc = 0;
+	double optdbl;
 
 	GError *err;
 	GSList *terms = NULL;
@@ -277,6 +291,17 @@ int main(int argc, char **argv)
 			case 'f':
 				g_free(conf->theme.font);
 				conf->theme.font = g_strdup(optarg);
+				break;
+			case 'o':
+				errno = 0;
+				optdbl = strtod(optarg, NULL);
+				if (!errno) {
+					conf->theme.opacity = optdbl;
+				} else {
+					g_warning("Could not convert %s to opacity double: %s",
+							optarg,
+							strerror(errno));
+				}
 				break;
 			case 'h':
 				sopt_usage_s();
