@@ -13,11 +13,13 @@
 #define DEFAULT_URL_REGEX "(ftp|http)s?://[-@a-zA-Z0-9.?$%&/=_~#.,:;+]*"
 #define DEFAULT_FIFO_TIMEOUT 5
 
+
 // Theme configuration
+#define THEME_SIZE_MAX 256
 struct theme {
 	double opacity;
         GdkRGBA fg, bg;
-        GdkRGBA colors[256];
+        GdkRGBA colors[THEME_SIZE_MAX];
 	char *font;
         gboolean bold_is_bright;
 	size_t size;

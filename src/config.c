@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <assert.h>
 #include <glib.h>
 #include <gtk/gtk.h>
 #include <vte/vte.h>
@@ -33,12 +34,9 @@ static bool buf_append_file(char **buf, size_t *len, size_t *pos, char *path)
 }
 
 /* get base path for configuration */
-static char *get_base_path(void)
+static inline char *get_base_path(void)
 {
-	char *conf_home = getenv("XDG_CONFIG_HOME");
-	if (conf_home)
-		return g_build_filename(conf_home, "rcfvt", NULL);
-	return g_build_filename(getenv("HOME"), ".config", "rcfvt", NULL);
+	return g_build_filename(g_get_user_config_dir(), "rcfvt", NULL);
 }
 
 /* read in full configuration */
@@ -150,25 +148,26 @@ static size_t conf_theme_set_size(struct theme *theme, GKeyFile *conf)
         }
         theme->size = atol(*size);
         g_free(val);
+	assert(theme->size <= THEME_SIZE_MAX);
         return theme->size;
 }
 
 // Load whole theme from GKeyFile configuration
 static bool conf_load_theme(struct theme *theme, GKeyFile *conf)
 {
-        char key[4];
         size_t i;
         int missing = 0;
 	KEYFILE_TRY_GET(conf, "theme", "font", theme->font, DEFAULT_FONT);
 	KEYFILE_TRY_GET(conf, "theme", "opacity", theme->opacity, DEFAULT_OPACITY);
+	KEYFILE_TRY_GET(conf, "theme", "bold_is_bright", theme->bold_is_bright, false);
         conf_theme_set_size(theme, conf);
+	char key[1 + snprintf(NULL, 0, "%zd", theme->size)];
         for (i = 0; i < theme->size; ++i) {
-                snprintf(key, 4, "%zd", i);
+                snprintf(key, sizeof(key), "%zd", i);
                 missing += keyfile_load_color(theme->colors + i, conf, "theme", key);
         }
         missing += keyfile_load_color(&(theme->fg), conf, "theme", "fg");
         missing += keyfile_load_color(&(theme->bg), conf, "theme", "bg");
-        theme->bold_is_bright = g_key_file_get_boolean(conf, "theme", "bold_is_bright", NULL);
         return !missing;
 }
 
@@ -192,10 +191,7 @@ void conf_load(struct config *conf)
 	KEYFILE_TRY_GET(kf, "main", "single_proc",  conf->single_proc, false);
 	KEYFILE_TRY_GET(kf, "main", "fifo_path", conf->fifo_path, NULL);
 	if (!conf->fifo_path) {
-		char *runtime_dir;
-		if (!(runtime_dir = getenv("XDG_RUNTIME_DIR")))
-                        runtime_dir = getenv("HOME");
-                conf->fifo_path = g_build_filename(runtime_dir, ".rcfvt_fifo", NULL);
+                conf->fifo_path = g_build_filename(g_get_user_runtime_dir(), "rcfvt_fifo", NULL);
 	}
 	KEYFILE_TRY_GET(kf, "main", "fifo_timeout", conf->fifo_timeout, DEFAULT_FIFO_TIMEOUT);
 	if (!conf_load_theme(&(conf->theme), kf)) {
