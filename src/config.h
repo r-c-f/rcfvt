@@ -21,7 +21,7 @@ struct theme {
         GdkRGBA fg, bg;
         GdkRGBA colors[THEME_SIZE_MAX];
 	char *font;
-        gboolean bold_is_bright;
+        bool bold_is_bright;
 	size_t size;
 };
 
