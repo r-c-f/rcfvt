@@ -146,10 +146,11 @@ done:
 //Tell server we're replacing it
 bool server_replace_notify(int timeout, const char *fifo_path)
 {
+	bool ret;
 	int fifo;
-	if ((fifo = msg_startw(timeout, fifo_path, MSG_REPLACE)) == -1)
-		return false;
-	return true;
+	ret = ((fifo = msg_startw(timeout, fifo_path, MSG_REPLACE)) == -1)
+	msg_endw(fifo);
+	return ret;
 }
 //Event for new FIFO data
 gboolean on_fifo_data(GIOChannel *source, GIOCondition condition, gpointer data)
