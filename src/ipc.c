@@ -148,7 +148,7 @@ bool server_replace_notify(int timeout, const char *fifo_path)
 {
 	bool ret;
 	int fifo;
-	ret = ((fifo = msg_startw(timeout, fifo_path, MSG_REPLACE)) == -1)
+	ret = ((fifo = msg_startw(timeout, fifo_path, MSG_REPLACE)) == -1);
 	msg_endw(fifo);
 	return ret;
 }
