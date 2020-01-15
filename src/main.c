@@ -326,6 +326,7 @@ int main(int argc, char **argv)
 		/* unless we're taking over the FIFO */
 		if (replace) {
 			g_info("Taking over FIFO");
+
 		} else if (client_start(conf->fifo_timeout, conf->fifo_path, sh_argc, sh_argv)) {
 			exit(0);
 		} else {
@@ -353,7 +354,8 @@ int main(int argc, char **argv)
 			g_warning("Could not start server for single process mode");
 	}
 	gtk_main();
-	unlink(conf->fifo_path);
+	if (!fifo_replaced)
+		unlink(conf->fifo_path);
 	return 0;
 }
 

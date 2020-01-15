@@ -14,6 +14,8 @@
 //forward declaration for term_start
 extern bool term_start(GSList **l, char **argv);
 
+bool fifo_replaced = false;
+
 /* write argv array */
 bool argv_write(int fd, int argc, char **argv)
 {
@@ -30,7 +32,6 @@ bool argv_write(int fd, int argc, char **argv)
 			argv = empty_argv;
 		}
 	}
-
 	if (!write_full(fd, &argc, sizeof(argc)))
 		return false;
 	while (*argv) {
@@ -82,10 +83,8 @@ static void sig_hand(int sig)
         }
 }
 
-//Attempt to connect to existing instance and launch a shell there
-bool client_start(int timeout, const char *fifo_path, int argc, char **argv)
+int msg_startw(int timeout, const char *fifo_path, enum msg_type type)
 {
-	bool ret = true;
         struct stat sbuf;
         struct sigaction act;
         int fifo;
@@ -107,29 +106,78 @@ bool client_start(int timeout, const char *fifo_path, int argc, char **argv)
         fifo = open(fifo_path, O_WRONLY);
 	alarm(0);
         if (fifo == -1)
-                return false;
+                return -1;
 	lockf(fifo, F_LOCK, 0);
-
-        if (!argv_write(fifo, argc, argv))
-		ret = false;
-
-        lockf(fifo, F_ULOCK, 0);
-        close(fifo);
-        return ret;
+	if (!write_full(fifo, &type, sizeof(type))) {
+		lockf(fifo, F_ULOCK, 0);
+		close(fifo);
+		return -1;
+	}
+	return fifo;
+}
+void msg_endw(int fifo)
+{
+	lockf(fifo, F_ULOCK, 0);
+	close(fifo);
+}
+enum msg_type msg_startr(int fifo)
+{
+	enum msg_type buf;
+	if (read_full(fifo, &buf, sizeof(buf)))
+		return buf;
+	return MSG_INVAL;
+}
+void msg_endr(int fifo)
+{
+	close(fifo);
 }
 
+//Attempt to connect to existing instance and launch a shell there
+bool client_start(int timeout, const char *fifo_path, int argc, char **argv)
+{
+	bool ret = true;
+        int fifo;
+	if ((fifo = msg_startw(timeout, fifo_path, MSG_ARGV)) == -1) {
+		ret = false;
+		goto done;
+	}
+        if (!argv_write(fifo, argc, argv))
+		ret = false;
+done:
+	msg_endw(fifo);
+        return ret;
+}
+//Tell server we're replacing it
+bool server_replace_notify(int timeout, const char *fifo_path)
+{
+	int fifo;
+	if ((fifo = msg_startw(timeout, fifo_path, MSG_REPLACE)) == -1)
+		return false;
+	return true;
+}
 //Event for new FIFO data
 gboolean on_fifo_data(GIOChannel *source, GIOCondition condition, gpointer data)
 {
 	int fifo_fd;
         char **argv = NULL;
+	enum msg_type type;
 
 	fifo_fd = g_io_channel_unix_get_fd(source);
-	argv = argv_read(fifo_fd);
 
-        if (!term_start(data, argv)) {
-                g_warning("could not start terminal from fifo");
-        	g_strfreev(argv);
+	switch ((type = msg_startr(fifo_fd))) {
+		case MSG_REPLACE:
+			fifo_replaced = true;
+			break;
+		case MSG_ARGV:
+			argv = argv_read(fifo_fd);
+        		if (!term_start(data, argv)) {
+                		g_warning("could not start terminal from fifo");
+				g_strfreev(argv);
+			}
+			break;
+		default:
+			g_warning("Invalid message received on FIFO");
+			break;
 	}
         return true;
 }
