@@ -90,10 +90,10 @@ int msg_startw(int timeout, const char *fifo_path, enum msg_type type)
         int fifo;
 
         if (stat(fifo_path, &sbuf))
-                return false;
+                return -1;
 	if (!S_ISFIFO(sbuf.st_mode)) {
 		g_warning("%s is not a FIFO", fifo_path);
-		return false;
+		return -1;
 	}
 
         //for timeout purposes -- we want to remove stale FIFOs and try again
