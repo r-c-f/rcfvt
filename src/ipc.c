@@ -83,7 +83,7 @@ static void sig_hand(int sig)
         }
 }
 
-int msg_startw(int timeout, const char *fifo_path, enum msg_type type)
+static int msg_startw(int timeout, const char *fifo_path, enum msg_type type)
 {
         struct stat sbuf;
         struct sigaction act;
@@ -115,21 +115,17 @@ int msg_startw(int timeout, const char *fifo_path, enum msg_type type)
 	}
 	return fifo;
 }
-void msg_endw(int fifo)
+static void msg_endw(int fifo)
 {
 	lockf(fifo, F_ULOCK, 0);
 	close(fifo);
 }
-enum msg_type msg_startr(int fifo)
+static enum msg_type msg_startr(int fifo)
 {
 	enum msg_type buf;
 	if (read_full(fifo, &buf, sizeof(buf)))
 		return buf;
 	return MSG_INVAL;
-}
-void msg_endr(int fifo)
-{
-	close(fifo);
 }
 
 //Attempt to connect to existing instance and launch a shell there
