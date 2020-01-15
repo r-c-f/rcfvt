@@ -326,7 +326,7 @@ int main(int argc, char **argv)
 		/* unless we're taking over the FIFO */
 		if (replace) {
 			g_info("Taking over FIFO");
-
+			server_replace_notify(conf->fifo_timeout, conf->fifo_path);
 		} else if (client_start(conf->fifo_timeout, conf->fifo_path, sh_argc, sh_argv)) {
 			exit(0);
 		} else {
