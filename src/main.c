@@ -256,6 +256,7 @@ bool term_start(GSList **l, char **argv)
 static struct sopt optspec[] = {
 	SOPT_INIT_FLAGL('h', "help", "this message"),
 	SOPT_INIT_FLAGL('s', "separate", "Run separate instance, even in single process mode"),
+	SOPT_INIT_FLAGL('r', "replace", "Take control of FIFO for future client connections"),
 	SOPT_INIT_PARAML('f', "font", "font", "Font and size to use, overriding configuration"),
 	SOPT_INIT_PARAML('F', "fifo", "fifo", "In single-process mode use fifo as path to control FIFO"),
 	SOPT_INIT_PARAML('o', "opacity", "opacity", "Enable given transparency"),
@@ -269,6 +270,7 @@ int main(int argc, char **argv)
 	char **sh_argv = NULL, *optarg;
 	int sh_argc = 0;
 	double optdbl;
+	bool replace = false;
 
 	GError *err;
 	GSList *terms = NULL;
@@ -283,6 +285,9 @@ int main(int argc, char **argv)
 		switch(opt) {
 			case 's':
 				conf->single_proc = false;
+				break;
+			case 'r':
+				replace = true;
 				break;
 			case 'F':
 				g_free(conf->fifo_path);
@@ -318,7 +323,10 @@ int main(int argc, char **argv)
 
 	//try to start a client, if we're using single-process
 	if (conf->single_proc) {
-		if (client_start(conf->fifo_timeout, conf->fifo_path, sh_argc, sh_argv)) {
+		/* unless we're taking over the FIFO */
+		if (replace) {
+			g_info("Taking over FIFO");
+		} else if (client_start(conf->fifo_timeout, conf->fifo_path, sh_argc, sh_argv)) {
 			exit(0);
 		} else {
 			g_warning("Could not connect to existing instance FIFO");
