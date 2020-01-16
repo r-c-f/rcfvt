@@ -117,8 +117,10 @@ static int msg_startw(int timeout, const char *fifo_path, enum msg_type type)
 }
 static void msg_endw(int fifo)
 {
-	lockf(fifo, F_ULOCK, 0);
-	close(fifo);
+	if (fifo != -1) {
+		lockf(fifo, F_ULOCK, 0);
+		close(fifo);
+	}
 }
 static enum msg_type msg_startr(int fifo)
 {
