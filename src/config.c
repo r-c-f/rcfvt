@@ -7,13 +7,7 @@
 #include <vte/vte.h>
 #include "config.h"
 
-/* read file into a buffer, resizing as needed
- *
- * Returns:
- *  0 on succes
- *  >0 on failure to open file
- *  <0 if allocation fails (inconsistent buffer state)
-*/
+/* read file into a buffer, resizing as needed */
 static bool buf_append_file(char **buf, size_t *len, size_t *pos, char *path)
 {
 	FILE *f;

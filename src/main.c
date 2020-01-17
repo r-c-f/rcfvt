@@ -247,7 +247,7 @@ bool term_start(GSList **l, char **argv)
         //proper way.
         vte_terminal_spawn_async(t->vte, 0, NULL, argv, NULL, 0, NULL, NULL, NULL, conf->spawn_timeout, NULL, &on_shell_spawn, argv);
 #endif
-	//Show the window and add to list
+	//Show the window
 	gtk_widget_show_all(GTK_WIDGET(t->win));
 
 	return true;
