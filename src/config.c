@@ -83,10 +83,14 @@ done:
  */
 #define KEYFILE_TRY_GET(kf, grp, key, dest, def) \
 	do { \
-		GError *err = NULL; \
-		dest = _Generic((dest), bool: g_key_file_get_boolean, int: g_key_file_get_integer, char *: g_key_file_get_string, double: g_key_file_get_double)(kf, grp, key, &err); \
-		if (err) \
+		if (!kf) { \
 			dest = def; \
+		} else { \
+			GError *err = NULL; \
+			dest = _Generic((dest), bool: g_key_file_get_boolean, int: g_key_file_get_integer, char *: g_key_file_get_string, double: g_key_file_get_double)(kf, grp, key, &err); \
+			if (err) \
+				dest = def; \
+		} \
 	} while(0)
 
 
@@ -132,6 +136,10 @@ static size_t conf_theme_set_size(struct theme *theme, GKeyFile *conf)
 {
         char *val, **size;
         char *sizes[] = {"0", "8", "16", "232", "256", NULL}; // all VTE supports.
+	if (!conf) {
+		theme->size = 0;
+		return theme->size;
+	}
         for (size = sizes; *size; ++size) {
                 val = g_key_file_get_string(conf, "theme", *size, NULL);
                 if (!val) {
@@ -168,15 +176,19 @@ static bool conf_load_theme(struct theme *theme, GKeyFile *conf)
 void conf_load(struct config *conf)
 {
 	char *mod_names, *mod_name;
+	GKeyFile *kf;
 
 	char *default_shell = vte_get_user_shell();
 	if (!default_shell)
 		default_shell = DEFAULT_SHELL;
 	char *conf_buf = read_full_conf_buf();
-	if (!conf_buf)
-		g_error("Configuration could not be read");
-	GKeyFile *kf = g_key_file_new();
-	g_key_file_load_from_data(kf, conf_buf, (gsize)-1, G_KEY_FILE_NONE, NULL);
+	if (conf_buf) {
+		kf = g_key_file_new();
+		g_key_file_load_from_data(kf, conf_buf, (gsize)-1, G_KEY_FILE_NONE, NULL);
+	} else {
+		g_warning("Could not read configuration file, using defaults");
+		kf = NULL;
+	}
 
 	KEYFILE_TRY_GET(kf, "main", "shell", conf->shell,default_shell); 
 	KEYFILE_TRY_GET(kf, "main", "scrollback", conf->scrollback, DEFAULT_SCROLLBACK);
@@ -222,9 +234,10 @@ void conf_load(struct config *conf)
 		}
 	}
 #endif
-	g_key_file_free(kf);
-	g_free(conf_buf);
-
+	if (kf) {
+		g_key_file_free(kf);
+		g_free(conf_buf);
+	}
 }
 
 
