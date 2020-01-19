@@ -120,14 +120,17 @@ static GdkModifierType gdk_mod_parse(char *name)
         return 0;
 }
 
-static bool keyfile_load_color(GdkRGBA *dest, GKeyFile *kf, char* group, char *key)
+/* Try to load a color from a keyfile. Returns 0 on success, 1 on failure */
+static int keyfile_load_color(GdkRGBA *dest, GKeyFile *kf, char* group, char *key)
 {
-        bool ret = true;
-        char *val = g_key_file_get_string(kf, group, key, NULL);
-        if (val && gdk_rgba_parse(dest,val)) {
-                ret = false;
-        }
-        g_free(val);
+        int ret = 1;
+	if (kf) {
+		char *val = g_key_file_get_string(kf, group, key, NULL);
+		if (val && gdk_rgba_parse(dest,val)) {
+			ret = 0;
+		}
+		g_free(val);
+	}
         return ret;
 }
 
@@ -206,7 +209,7 @@ void conf_load(struct config *conf)
 	}
 
 	KEYFILE_TRY_GET(kf, "url", "modifiers", mod_names, NULL);
-	if (!mod_names) {
+	if (mod_names) {
 		mod_name = strtok(mod_names, "|+");
 		do {
 			conf->url_modifiers |= gdk_mod_parse(mod_name);
