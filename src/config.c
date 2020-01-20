@@ -78,18 +78,18 @@ done:
 }
 
 /*
- * tries to use g_key_file_get_typ() to set dest, if it fails, 
+ * tries to use g_key_file_get_typ() to set dest, if it fails,
  * sets dest to def instead
  */
 #define KEYFILE_TRY_GET(kf, grp, key, dest, def) \
 	do { \
 		if (!kf) { \
-			dest = def; \
+			dest = _Generic((dest), char *: g_strdup(def), default: def); \
 		} else { \
 			GError *err = NULL; \
 			dest = _Generic((dest), bool: g_key_file_get_boolean, int: g_key_file_get_integer, char *: g_key_file_get_string, double: g_key_file_get_double)(kf, grp, key, &err); \
 			if (err) \
-				dest = def; \
+				dest = _Generic((dest), char *: g_strdup(def), default: def);
 		} \
 	} while(0)
 
@@ -193,7 +193,7 @@ void conf_load(struct config *conf)
 		kf = NULL;
 	}
 
-	KEYFILE_TRY_GET(kf, "main", "shell", conf->shell,default_shell); 
+	KEYFILE_TRY_GET(kf, "main", "shell", conf->shell,default_shell);
 	KEYFILE_TRY_GET(kf, "main", "scrollback", conf->scrollback, DEFAULT_SCROLLBACK);
 	KEYFILE_TRY_GET(kf, "main", "spawn_timeout", conf->spawn_timeout, DEFAULT_SPAWN_TIMEOUT);
 	KEYFILE_TRY_GET(kf, "main", "select_to_clipboard", conf->select_to_clipboard, false);
