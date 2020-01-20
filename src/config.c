@@ -80,16 +80,32 @@ done:
 /*
  * tries to use g_key_file_get_typ() to set dest, if it fails,
  * sets dest to def instead
+ *
+ * includes helper macros to get assign by value even for strings, and helper
+ * functions because _Generic is stupid for some reason
  */
+static inline bool noop_bool(bool x)
+{
+	return x;
+}
+static inline int noop_int(int x)
+{
+	return x;
+}
+static inline double noop_dbl(double x)
+{
+	return x;
+}
+#define KEYFILE_TRY_ASSGN_DEF(dest, def) ((dest) = _Generic( (dest), bool: noop_bool, int: noop_int, double: noop_dbl, char *: g_strdup)(def))
 #define KEYFILE_TRY_GET(kf, grp, key, dest, def) \
 	do { \
 		if (!kf) { \
-			dest = _Generic((dest), char *: g_strdup(def), default: def); \
+			KEYFILE_TRY_ASSGN_DEF(dest, def); \
 		} else { \
 			GError *err = NULL; \
 			dest = _Generic((dest), bool: g_key_file_get_boolean, int: g_key_file_get_integer, char *: g_key_file_get_string, double: g_key_file_get_double)(kf, grp, key, &err); \
 			if (err) \
-				dest = _Generic((dest), char *: g_strdup(def), default: def); \
+				KEYFILE_TRY_ASSGN_DEF(dest, def); \
 		} \
 	} while(0)
 
