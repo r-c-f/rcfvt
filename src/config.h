@@ -5,7 +5,7 @@
 #endif
 
 // Fallback options if not present in config file.
-#define DEFAULT_FONT "Fixed 9"
+#define DEFAULT_FONT "Misc Fixed 9"
 #define DEFAULT_SHELL "/bin/bash"
 #define DEFAULT_OPACITY 1.0
 #define DEFAULT_SCROLLBACK 1000000
