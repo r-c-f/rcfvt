@@ -89,7 +89,7 @@ done:
 			GError *err = NULL; \
 			dest = _Generic((dest), bool: g_key_file_get_boolean, int: g_key_file_get_integer, char *: g_key_file_get_string, double: g_key_file_get_double)(kf, grp, key, &err); \
 			if (err) \
-				dest = _Generic((dest), char *: g_strdup(def), default: def);
+				dest = _Generic((dest), char *: g_strdup(def), default: def); \
 		} \
 	} while(0)
 
