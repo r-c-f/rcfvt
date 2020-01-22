@@ -9,6 +9,9 @@
 #include <limits.h>
 
 /* functions to do read/write without shortness */
+#ifdef __GNUC__
+__attribute__((unused))
+#endif
 static bool read_full(int fd, void *buf, size_t count)
 {
 	ssize_t ret;
@@ -27,6 +30,9 @@ static bool read_full(int fd, void *buf, size_t count)
 	}
 	return true;
 }
+#ifdef __GNUC__
+__attribute__((unused))
+#endif
 static bool write_full(int fd, const void *buf, size_t count)
 {
 	ssize_t ret;
