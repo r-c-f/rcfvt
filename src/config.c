@@ -187,8 +187,8 @@ static bool conf_load_theme(struct theme *theme, GKeyFile *conf)
                 snprintf(key, sizeof(key), "%zd", i);
                 missing += keyfile_load_color(theme->colors + i, conf, "theme", key);
         }
-        missing += keyfile_load_color(&(theme->fg), conf, "theme", "fg");
-        missing += keyfile_load_color(&(theme->bg), conf, "theme", "bg");
+        missing += !(theme->fg_set = !keyfile_load_color(&(theme->fg), conf, "theme", "fg"));
+        missing += !(theme->bg_set = !keyfile_load_color(&(theme->bg), conf, "theme", "bg"));
         return !missing;
 }
 

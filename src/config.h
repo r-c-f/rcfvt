@@ -19,6 +19,7 @@
 struct theme {
 	double opacity;
         GdkRGBA fg, bg;
+	bool fg_set, bg_set;
         GdkRGBA colors[THEME_SIZE_MAX];
 	char *font;
         bool bold_is_bright;

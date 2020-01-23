@@ -187,6 +187,32 @@ void term_exit(VteTerminal *vte, gint status, gpointer user_data)
 		gtk_main_quit();
 }
 
+// Apply theme to a terminal
+static void term_theme_apply(struct term *t, struct theme *theme)
+{
+        vte_terminal_set_font(t->vte, pango_font_description_from_string(theme->font));
+        vte_terminal_set_bold_is_bright(t->vte, theme->bold_is_bright);
+        if (theme->size) {
+                vte_terminal_set_colors(t->vte, &theme->fg, &theme->bg, theme->colors, theme->size);
+        } else {
+                /* still support individual colors */
+                if (theme->bg_set)
+                        vte_terminal_set_color_background(t->vte, &theme->bg);
+                if (theme->fg_set)
+                        vte_terminal_set_color_foreground(t->vte, &theme->fg);
+        }
+        if (theme->opacity < 1) {
+                GdkScreen *screen = gdk_screen_get_default();
+                if (!gdk_screen_is_composited(screen)) {
+                        g_warning("not composited, cannot set transparency");
+                } else {
+                        update_visuals(GTK_WIDGET(t->win));
+			gtk_widget_set_app_paintable(GTK_WIDGET(t->win), TRUE);
+			gtk_widget_set_opacity(GTK_WIDGET(t->win), theme->opacity);
+		}
+	}
+}
+
 // add new terminal window
 bool term_start(GSList **l, char **argv)
 {
@@ -211,6 +237,7 @@ bool term_start(GSList **l, char **argv)
 	g_signal_connect(t->vte, "child-exited", G_CALLBACK(term_exit), l);
 	g_signal_connect(t->vte, "bell", G_CALLBACK(on_bell), t->win);
 	g_signal_connect(t->vte, "button-press-event", G_CALLBACK(on_button_press), t->vte);
+        g_signal_connect(t->win, "screen-changed", G_CALLBACK(on_screen_change), NULL);
 	//Configuration signals
 	if (conf->select_to_clipboard)
 		g_signal_connect(t->vte, "selection-changed", G_CALLBACK(on_select_clipboard), t->vte);
@@ -218,23 +245,7 @@ bool term_start(GSList **l, char **argv)
 	if (urlre)
 		vte_terminal_match_add_regex(t->vte, urlre, PCRE2_NOTEMPTY);
 	//Set theme
-	vte_terminal_set_font(t->vte, pango_font_description_from_string(conf->theme.font));
-	if (conf->theme.size) {
-		vte_terminal_set_colors(t->vte, &(conf->theme.fg), &(conf->theme.bg), conf->theme.colors, conf->theme.size);
-		vte_terminal_set_bold_is_bright(t->vte, conf->theme.bold_is_bright);
-	}
-	//specifically, transparency
-	if (conf->theme.opacity < 1) {
-		GdkScreen *screen = gdk_screen_get_default();
-                if (!gdk_screen_is_composited(screen)) {
-                        g_warning("unable to enable transparency");
-                } else {
-                        g_signal_connect(t->win, "screen-changed", G_CALLBACK(on_screen_change), NULL);
-                        update_visuals(GTK_WIDGET(t->win));
-                        gtk_widget_set_app_paintable(GTK_WIDGET(t->win), TRUE);
-                        gtk_widget_set_opacity(GTK_WIDGET(t->win), conf->theme.opacity);
-                }
-	}
+	term_theme_apply(t, &conf->theme);
 	//Set other options
 	vte_terminal_set_audible_bell(t->vte, conf->beep_bell);
 	vte_terminal_set_allow_hyperlink(t->vte, conf->url_osc8);
