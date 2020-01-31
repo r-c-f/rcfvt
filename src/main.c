@@ -15,9 +15,7 @@
 #include "ipc.h"
 #include "sopt.h"
 #include "fdio_full.h"
-#ifdef HAVE_CANBERRA
-#include <canberra.h>
-#endif
+#include "ca_plugin.h"
 
 // Commands for URL stuff, and a static command buffer
 static char *cmd_buf;
@@ -153,8 +151,8 @@ void on_bell(VteTerminal *vte, gpointer data)
 	if (!gtk_window_has_toplevel_focus(GTK_WINDOW(data)))
 		gtk_window_set_urgency_hint(GTK_WINDOW(data), TRUE);
 #ifdef HAVE_CANBERRA
-	if (conf->ca_con)
-		ca_context_play(conf->ca_con, 0, CA_PROP_EVENT_ID, "bell-terminal", NULL);
+	if(conf->ca_bell)
+		ca_plug_termbell();
 #endif
 }
 

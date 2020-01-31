@@ -43,7 +43,7 @@ struct config {
 	char *fifo_path;
 	int fifo_timeout;
 #ifdef HAVE_CANBERRA
-	ca_context *ca_con;
+	bool ca_bell;
 #endif
 };
 

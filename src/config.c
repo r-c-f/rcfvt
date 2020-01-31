@@ -6,6 +6,7 @@
 #include <gtk/gtk.h>
 #include <vte/vte.h>
 #include "config.h"
+#include "ca_plugin.h"
 
 /* read file into a buffer, resizing as needed */
 static bool buf_append_file(char **buf, size_t *len, size_t *pos, char *path)
@@ -238,19 +239,9 @@ void conf_load(struct config *conf)
 
 	KEYFILE_TRY_GET(kf, "sound", "beep_bell", conf->beep_bell, false);
 #ifdef HAVE_CANBERRA
-	bool canberra_bell;
-	KEYFILE_TRY_GET(kf, "sound", "canberra_bell", canberra_bell, false);
-	if (canberra_bell) {
-		int ret;
-		if ((ret = ca_context_create(&(conf->ca_con)))) {
-			g_warning("Could not create canberra context: %s", ca_strerror(ret));
-			conf->ca_con = NULL;
-		}
-		if (conf->ca_con && (ret = ca_context_open(conf->ca_con))) {
-			g_warning("Could not open canberra context: %s", ca_strerror(ret));
-			ca_context_destroy(conf->ca_con);
-			conf->ca_con = NULL;
-		}
+	KEYFILE_TRY_GET(kf, "sound", "canberra_bell", conf->ca_bell, false);
+	if (conf->ca_bell) {
+		conf->ca_bell = ca_plug_load();
 	}
 #endif
 	if (kf) {
