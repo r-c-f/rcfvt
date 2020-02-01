@@ -3,7 +3,13 @@ vtedep = dependency('vte-2.91')
 
 canberradep = dependency('libcanberra', required : false)
 cc = meson.get_compiler('c')
-dldep = cc.find_library('dl')
+if cc.has_function('dlopen')
+  dldep = []
+elif cc.has_function('dlopen', args: '-ldl')
+  dldep = cc.find_library('dl')
+else
+  error('no dlopen support')
+endif
 
 executable('rcfvt', ['src/main.c','src/config.c', 'src/ipc.c', 'src/ca_plugin.c'], install: true, dependencies : [vtedep, dldep])
 if canberradep.found()
