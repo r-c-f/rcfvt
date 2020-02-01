@@ -150,10 +150,8 @@ void on_bell(VteTerminal *vte, gpointer data)
 {
 	if (!gtk_window_has_toplevel_focus(GTK_WINDOW(data)))
 		gtk_window_set_urgency_hint(GTK_WINDOW(data), TRUE);
-#ifdef HAVE_CANBERRA
-	if(conf->ca_bell)
+	if(conf->canberra_bell)
 		ca_plug_termbell();
-#endif
 }
 
 struct term {

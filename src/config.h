@@ -1,8 +1,5 @@
 #include <stdbool.h>
 #include <gtk/gtk.h>
-#ifdef HAVE_CANBERRA
-#include <canberra.h>
-#endif
 
 // Fallback options if not present in config file.
 #define DEFAULT_FONT "Misc Fixed 9"
@@ -42,9 +39,6 @@ struct config {
 	bool single_proc;
 	char *fifo_path;
 	int fifo_timeout;
-#ifdef HAVE_CANBERRA
-	bool ca_bell;
-#endif
 };
 
 

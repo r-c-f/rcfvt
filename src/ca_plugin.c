@@ -1,4 +1,3 @@
-#ifdef HAVE_CANBERRA
 #include "ca_plugin.h"
 
 
@@ -20,4 +19,3 @@ error:
 	g_warning("Could not load canberra plugin: %s", dlerror());
 	return false;
 }
-#endif

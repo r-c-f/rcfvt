@@ -238,13 +238,11 @@ void conf_load(struct config *conf)
 	KEYFILE_TRY_GET(kf, "url", "action", conf->url_action, NULL);
 
 	KEYFILE_TRY_GET(kf, "sound", "beep_bell", conf->beep_bell, false);
-#ifdef HAVE_CANBERRA
-	KEYFILE_TRY_GET(kf, "sound", "canberra_bell", conf->ca_bell, false);
-	if (conf->ca_bell) {
-		conf->ca_bell = ca_plug_load();
-		conf->ca_bell = ca_plug_init();
+	KEYFILE_TRY_GET(kf, "sound", "canberra_bell", conf->canberra_bell, false);
+	if (conf->canberra_bell) {
+		conf->canberra_bell = ca_plug_load();
+		conf->canberra_bell = ca_plug_init();
 	}
-#endif
 	if (kf) {
 		g_key_file_free(kf);
 		g_free(conf_buf);

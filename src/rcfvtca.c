@@ -1,5 +1,4 @@
 /* simple code to ring the terminal bell using canberra*/
-#ifdef HAVE_CANBERRA
 #include <canberra.h>
 #include <stdbool.h>
 #include <glib.h>
@@ -26,4 +25,3 @@ bool rcfvtca_termbell(void)
 	}
 	return !!ca_con;
 }
-#endif
