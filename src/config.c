@@ -242,6 +242,7 @@ void conf_load(struct config *conf)
 	KEYFILE_TRY_GET(kf, "sound", "canberra_bell", conf->ca_bell, false);
 	if (conf->ca_bell) {
 		conf->ca_bell = ca_plug_load();
+		conf->ca_bell = ca_plug_init();
 	}
 #endif
 	if (kf) {
