@@ -261,12 +261,12 @@ bool term_start(GSList **l, char **argv)
 }
 
 static struct sopt optspec[] = {
-	SOPT_INIT_FLAGL('h', "help", "this message"),
-	SOPT_INIT_FLAGL('s', "separate", "Run separate instance, even in single process mode"),
-	SOPT_INIT_FLAGL('r', "replace", "Take control of FIFO for future client connections"),
-	SOPT_INIT_PARAML('f', "font", "font", "Font and size to use, overriding configuration"),
-	SOPT_INIT_PARAML('F', "fifo", "fifo", "In single-process mode use fifo as path to control FIFO"),
-	SOPT_INIT_PARAML('o', "opacity", "opacity", "Enable given transparency"),
+	SOPT_INITL('h', "help", "this message"),
+	SOPT_INITL('s', "separate", "Run separate instance, even in single process mode"),
+	SOPT_INITL('r', "replace", "Take control of FIFO for future client connections"),
+	SOPT_INIT_ARGL('f', "font", "font", "Font and size to use, overriding configuration"),
+	SOPT_INIT_ARGL('F', "fifo", "fifo", "In single-process mode use fifo as path to control FIFO"),
+	SOPT_INIT_ARGL('o', "opacity", "opacity", "Enable given transparency"),
 	SOPT_INIT_AFTER("[command]", "command to run instead of shell"),
 	SOPT_INIT_END
 };
