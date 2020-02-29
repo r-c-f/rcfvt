@@ -76,17 +76,9 @@ argv_read_err:
 	return NULL;
 }
 
-static void sig_hand(int sig)
-{
-        if (sig == SIGALRM) {
-                g_info("Stale FIFO detected");
-        }
-}
-
 static int msg_startw(int timeout, const char *fifo_path, enum msg_type type)
 {
         struct stat sbuf;
-        struct sigaction act;
         int fifo;
 
         if (stat(fifo_path, &sbuf))
@@ -96,15 +88,7 @@ static int msg_startw(int timeout, const char *fifo_path, enum msg_type type)
 		return -1;
 	}
 
-        //for timeout purposes -- we want to remove stale FIFOs and try again
-	memset(&act, 0, sizeof(act));
-        act.sa_handler = sig_hand;
-	sigemptyset(&act.sa_mask);
-        act.sa_flags &= ~SA_RESTART;
-        sigaction(SIGALRM, &act, NULL);
-        alarm(timeout); //ought to be reasonable, maybe...
-        fifo = open(fifo_path, O_WRONLY);
-	alarm(0);
+        fifo = open(fifo_path, O_WRONLY | O_NONBLOCK);
         if (fifo == -1)
                 return -1;
 	lockf(fifo, F_LOCK, 0);

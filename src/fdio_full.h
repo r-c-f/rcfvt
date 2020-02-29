@@ -7,6 +7,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <limits.h>
+#include <poll.h>
 
 /* functions to do read/write without shortness */
 #ifdef __GNUC__
@@ -23,6 +24,15 @@ static bool read_full(int fd, void *buf, size_t count)
 		if (ret < 1) {
 			if (errno == EINTR)
 				continue;
+			if (errno == EAGAIN || errno == EWOULDBLOCK) {
+				struct pollfd pfd = {
+					.fd = fd,
+					.events = POLLIN,
+					.revents = 0
+				};
+				if (poll(&pfd, 1, 0))
+					continue;
+			}
 			return false;
 		}
 		pos += ret;
@@ -44,6 +54,15 @@ static bool write_full(int fd, const void *buf, size_t count)
 		if (ret < 1) {
 			if (errno == EINTR)
 				continue;
+			if (errno == EAGAIN || errno == EWOULDBLOCK) {
+				struct pollfd pfd = {
+					.fd = fd,
+					.events = POLLIN,
+					.revents = 0
+				};
+				if (poll(&pfd, 1, 0))
+					continue;
+			}
 			return false;
 		}
 		pos += ret;
