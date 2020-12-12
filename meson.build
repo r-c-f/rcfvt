@@ -12,7 +12,7 @@ else
   error('no dlopen support')
 endif
 
-executable('rcfvt', ['src/main.c','src/config.c', 'src/ipc.c', 'src/ca_plugin.c'], install: true, dependencies : [vtedep, dldep])
+executable('rcfvt', ['src/main.c','src/config.c', 'src/ipc.c', 'src/ca_plugin.c', 'src/notify_plugin.c'], install: true, dependencies : [vtedep, dldep])
 if canberradep.found()
   shared_library('rcfvtca', 'src/rcfvtca.c', install: true, dependencies : [vtedep, canberradep])
 endif

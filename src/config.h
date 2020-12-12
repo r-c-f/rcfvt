@@ -34,6 +34,9 @@ struct config {
 	char *url_action;
 	bool beep_bell;
 	bool canberra_bell;
+	bool notify_bell;
+	bool notify_bell_x11;
+	bool notify_bell_wl;
 	bool url_osc8;
 	bool url_spawn_sync;
 	bool single_proc;
@@ -41,7 +44,11 @@ struct config {
 	int fifo_timeout;
 };
 
-
+enum conf_backend {
+	conf_backend_unknown=-1,
+	conf_backend_x11,
+	conf_backend_wl
+};
 
 extern void conf_load(struct config *conf);
 

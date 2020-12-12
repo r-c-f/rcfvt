@@ -2,7 +2,7 @@
 
 
 bool (*notify_plug_init)(void);
-bool (*notify_plug_termbell)(void);
+bool (*notify_plug_termbell)(const char *title);
 
 bool notify_plug_load(void)
 {

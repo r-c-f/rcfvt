@@ -3,10 +3,18 @@
 #include <unistd.h>
 #include <assert.h>
 #include <glib.h>
+#include <gdk/gdk.h>
+#ifdef GDK_WINDOWING_X11
+#include <gdk/gdkx.h>
+#endif
+#ifdef GDK_WINDOWING_WAYLAND
+#include <gdk/gdkwayland.h>
+#endif
 #include <gtk/gtk.h>
 #include <vte/vte.h>
 #include "config.h"
 #include "ca_plugin.h"
+#include "notify_plugin.h"
 
 /* read file into a buffer, resizing as needed */
 static bool buf_append_file(char **buf, size_t *len, size_t *pos, char *path)
@@ -193,6 +201,31 @@ static bool conf_load_theme(struct theme *theme, GKeyFile *conf)
         return !missing;
 }
 
+//Figure out what windowing system we are using
+static enum conf_backend conf_get_backend(void)
+{
+	//first we'll try the halfway-decent way
+	char *backend = getenv("XDG_SESSION_TYPE");
+	if (backend) {
+		if (!strcmp(backend, "x11")) {
+			return conf_backend_x11;
+		} else if (!strcmp(backend, "wayland")) {
+			return conf_backend_wl;
+		} else {
+			return conf_backend_unknown;
+		}
+	}
+	//slightly dumber way -- wayland will take precedence because xwayland
+	if (getenv("WAYLAND_DISPLAY")) {
+		return conf_backend_wl;
+	}
+	if (getenv("DISPLAY")) {
+		return conf_backend_x11;
+	}
+	//and everything has failed at this point.
+	return conf_backend_unknown;
+}
+
 void conf_load(struct config *conf)
 {
 	char *mod_names, *mod_name;
@@ -237,11 +270,40 @@ void conf_load(struct config *conf)
 	KEYFILE_TRY_GET(kf, "url", "spawn_sync", conf->url_spawn_sync, false);
 	KEYFILE_TRY_GET(kf, "url", "action", conf->url_action, NULL);
 
+	KEYFILE_TRY_GET(kf, "notify", "x11", conf->notify_bell_x11, false);
+	KEYFILE_TRY_GET(kf, "notify", "wayland", conf->notify_bell_wl, true);
+	conf->notify_bell = conf->notify_bell_x11 || conf->notify_bell_wl;
+	if (conf->notify_bell) {
+		if ((conf->notify_bell = notify_plug_load())) {
+			conf->notify_bell = notify_plug_init();
+		}
+	}
+	//because whether we use the notify bell is really mostly dependent on
+	//which windowing system we're using, figure that out now and set the
+	//main option accordingly
+	if (conf->notify_bell) {
+		enum conf_backend backend = conf_get_backend();
+		switch (backend) {
+			case conf_backend_x11:
+				if (!conf->notify_bell_x11)
+					conf->notify_bell = false;
+				break;
+			case conf_backend_wl:
+				if (!conf->notify_bell_wl)
+					conf->notify_bell = false;
+				break;
+			default:
+				g_warning("could not determine gdk backend");
+				conf->notify_bell = false;
+		}
+	}
+
 	KEYFILE_TRY_GET(kf, "sound", "beep_bell", conf->beep_bell, false);
 	KEYFILE_TRY_GET(kf, "sound", "canberra_bell", conf->canberra_bell, false);
 	if (conf->canberra_bell) {
-		conf->canberra_bell = ca_plug_load();
-		conf->canberra_bell = ca_plug_init();
+		if ((conf->canberra_bell = ca_plug_load())) {
+			conf->canberra_bell = ca_plug_init();
+		}
 	}
 	if (kf) {
 		g_key_file_free(kf);

@@ -16,6 +16,7 @@
 #include "sopt.h"
 #include "fdio_full.h"
 #include "ca_plugin.h"
+#include "notify_plugin.h"
 
 // Commands for URL stuff, and a static command buffer
 static char *cmd_buf;
@@ -148,8 +149,12 @@ void on_screen_change(GtkWidget *win, GdkScreen *prev, gpointer data) {
 // set urgent when bell rings.
 void on_bell(VteTerminal *vte, gpointer data)
 {
-	if (!gtk_window_has_toplevel_focus(GTK_WINDOW(data)))
+	if (!gtk_window_has_toplevel_focus(GTK_WINDOW(data))) {
 		gtk_window_set_urgency_hint(GTK_WINDOW(data), TRUE);
+		if (conf->notify_bell) {
+			notify_plug_termbell(gtk_window_get_title(GTK_WINDOW(data)));
+		}
+	}
 	if(conf->canberra_bell)
 		ca_plug_termbell();
 }
