@@ -159,6 +159,12 @@ void on_bell(VteTerminal *vte, gpointer data)
 		ca_plug_termbell();
 }
 
+// set window title
+void on_title_change(VteTerminal *vte, gpointer data)
+{
+	gtk_window_set_title(GTK_WINDOW(data), vte_terminal_get_window_title(vte));
+}
+
 struct term {
 	GtkWindow *win;
 	VteTerminal *vte;
@@ -239,6 +245,7 @@ bool term_start(GSList **l, char **argv)
 	g_signal_connect(t->vte, "bell", G_CALLBACK(on_bell), t->win);
 	g_signal_connect(t->vte, "button-press-event", G_CALLBACK(on_button_press), t->vte);
         g_signal_connect(t->win, "screen-changed", G_CALLBACK(on_screen_change), NULL);
+	g_signal_connect(t->vte, "window-title-changed", G_CALLBACK(on_title_change), t->win);
 	//Configuration signals
 	if (conf->select_to_clipboard)
 		g_signal_connect(t->vte, "selection-changed", G_CALLBACK(on_select_clipboard), t->vte);

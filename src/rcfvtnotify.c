@@ -11,7 +11,7 @@ bool rcfvtnotify_termbell(const char *title)
 {
 	NotifyNotification *notification;
 	bool ret;
-
+	title = title ? title : "rcfvt";
 	notification = notify_notification_new(title, "bell received", NULL);
 	ret = notify_notification_show(notification, NULL);
 	g_object_unref(G_OBJECT(notification));
