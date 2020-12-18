@@ -26,7 +26,7 @@ bool argv_write(int fd, int argc, char **argv)
 	if (!argc) {
 		if (argv) {
 			char **arg = argv;
-			for (argc = 0; *arg; ++argv);
+			for (argc = 0; *arg; ++arg);
 		} else {
 			//allow for empty argv
 			argv = empty_argv;
