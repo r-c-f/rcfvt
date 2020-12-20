@@ -20,18 +20,7 @@ bool fifo_replaced = false;
 bool argv_write(int fd, int argc, char **argv)
 {
 	size_t arglen;
-	char *empty_argv[] = {NULL};
 	char nul = '\0';
-	// allow for 0 argc -- i.e. we calculate it ourselves
-	if (!argc) {
-		if (argv) {
-			char **arg = argv;
-			for (argc = 0; *arg; ++arg);
-		} else {
-			//allow for empty argv
-			argv = empty_argv;
-		}
-	}
 	if (!write_full(fd, &argc, sizeof(argc)))
 		return false;
 	while (*argv) {
