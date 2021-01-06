@@ -23,6 +23,8 @@ bool argv_write(int fd, int argc, char **argv)
 	char nul = '\0';
 	if (!write_full(fd, &argc, sizeof(argc)))
 		return false;
+	if (!argv)
+		return true;
 	while (*argv) {
 		arglen = strlen(*argv);
 		if (!write_full(fd, &arglen, sizeof(arglen)))
