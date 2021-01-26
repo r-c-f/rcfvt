@@ -318,6 +318,10 @@ int main(int argc, char **argv)
 				break;
 			case 'o':
 				errno = 0;
+				if (!optarg) {
+					g_warning("No opacity given");
+					break;
+				}
 				optdbl = strtod(optarg, NULL);
 				if (!errno) {
 					conf->theme.opacity = optdbl;

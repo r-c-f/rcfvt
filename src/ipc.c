@@ -134,11 +134,10 @@ gboolean on_fifo_data(GIOChannel *source, GIOCondition condition, gpointer data)
 {
 	int fifo_fd;
         char **argv = NULL;
-	enum msg_type type;
 
 	fifo_fd = g_io_channel_unix_get_fd(source);
 
-	switch ((type = msg_startr(fifo_fd))) {
+	switch (msg_startr(fifo_fd)) {
 		case MSG_REPLACE:
 			fifo_replaced = true;
 			break;
