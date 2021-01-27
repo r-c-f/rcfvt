@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <unistd.h>
+#include <assert.h>
 #include <gdk/gdkkeysyms.h>
 #include <gtk/gtk.h>
 #include <glib.h>
@@ -317,11 +318,8 @@ int main(int argc, char **argv)
 				conf->theme.font = g_strdup(optarg);
 				break;
 			case 'o':
+				assert(optarg);
 				errno = 0;
-				if (!optarg) {
-					g_warning("No opacity given");
-					break;
-				}
 				optdbl = strtod(optarg, NULL);
 				if (!errno) {
 					conf->theme.opacity = optdbl;
