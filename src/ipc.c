@@ -21,17 +21,17 @@ bool argv_write(int fd, int argc, char **argv)
 {
 	size_t arglen;
 	char nul = '\0';
-	if (!write_full(fd, &argc, sizeof(argc)))
+	if (!write_full(fd, &argc, sizeof(argc), 0))
 		return false;
 	if (!argv)
 		return true;
 	while (*argv) {
 		arglen = strlen(*argv);
-		if (!write_full(fd, &arglen, sizeof(arglen)))
+		if (!write_full(fd, &arglen, sizeof(arglen), 0))
 			return false;
-		if (!write_full(fd, *argv, arglen))
+		if (!write_full(fd, *argv, arglen, 0))
 			return false;
-		if (!write_full(fd, &nul, 1))
+		if (!write_full(fd, &nul, 1, 0))
 			return false;
 		++argv;
 	}
@@ -45,7 +45,7 @@ char **argv_read(int fd)
 	size_t arglen;
 	char **argv;
 
-	if (!read_full(fd, &argc, sizeof(argc)))
+	if (!read_full(fd, &argc, sizeof(argc), 0))
 		return NULL;
 	if (!argc)
 		return NULL; //not an error - just empty.
@@ -53,10 +53,10 @@ char **argv_read(int fd)
 	argv = g_new0(char *, argc + 1); //argc + 1 for NULL termination
 
 	for (i = 0; i < argc; ++i) {
-		if (!read_full(fd, &arglen, sizeof(arglen)))
+		if (!read_full(fd, &arglen, sizeof(arglen), 0))
 			goto argv_read_err;
 		argv[i] = g_malloc(arglen + 1);
-		if (!read_full(fd, argv[i], arglen + 1))
+		if (!read_full(fd, argv[i], arglen + 1, 0))
 			goto argv_read_err;
 		if (argv[i][arglen] != '\0')
 			goto argv_read_err; //we've lost sync
@@ -83,7 +83,7 @@ static int msg_startw(int timeout, const char *fifo_path, enum msg_type type)
         if (fifo == -1)
                 return -1;
 	lockf(fifo, F_LOCK, 0);
-	if (!write_full(fifo, &type, sizeof(type))) {
+	if (!write_full(fifo, &type, sizeof(type), 0)) {
 		lockf(fifo, F_ULOCK, 0);
 		close(fifo);
 		return -1;
@@ -100,7 +100,7 @@ static void msg_endw(int fifo)
 static enum msg_type msg_startr(int fifo)
 {
 	enum msg_type buf;
-	if (read_full(fifo, &buf, sizeof(buf)))
+	if (read_full(fifo, &buf, sizeof(buf), 0))
 		return buf;
 	return MSG_INVAL;
 }
