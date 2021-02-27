@@ -1,4 +1,21 @@
-
+/* fdio_full -- read/write without shortness
+ *
+ * Version 1.0
+ *
+ * Copyright 2021 Ryan Farley <ryan.farley@gmx.com>
+ *
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+ * SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
+ * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+*/
 #ifndef FDIO_FULL_H_INC
 #define FDIO_FULL_H_INC
 
@@ -7,13 +24,18 @@
 #include <string.h>
 #include <stdbool.h>
 #include <limits.h>
-#include <poll.h>
 
-/* functions to do read/write without shortness */
+
+enum fdio_full_flag {
+	FDIO_FULL_FLAG_NONE = 0,
+	FDIO_FULL_FLAG_NB = 1, //don't block on non-blocking sockets
+	FDIO_FULL_FLAG_INTR = 2, //bail out on EINTR
+};
+
 #ifdef __GNUC__
 __attribute__((unused))
 #endif
-static bool read_full(int fd, void *buf, size_t count)
+static bool read_full(int fd, void *buf, size_t count, enum fdio_full_flag flags)
 {
 	ssize_t ret;
 	char *pos;
@@ -22,18 +44,21 @@ static bool read_full(int fd, void *buf, size_t count)
 		errno = 0;
 		ret = read(fd, pos, count > SSIZE_MAX ? SSIZE_MAX : count);
 		if (ret < 1) {
-			if (errno == EINTR)
-				continue;
-			if (errno == EAGAIN || errno == EWOULDBLOCK) {
-				struct pollfd pfd = {
-					.fd = fd,
-					.events = POLLIN,
-					.revents = 0
-				};
-				if (poll(&pfd, 1, 0))
+			switch (errno) {
+				case EINTR:
+					if (flags & FDIO_FULL_FLAG_INTR)
+						return false;
 					continue;
+				case EAGAIN:
+				#if EAGAIN != EWOULDBLOCK
+				case EWOULDBLOCK:
+				#endif
+					if (flags & FDIO_FULL_FLAG_NB)
+						return false;
+					continue;
+				default:
+					return false;
 			}
-			return false;
 		}
 		pos += ret;
 		count -= ret;
@@ -43,7 +68,7 @@ static bool read_full(int fd, void *buf, size_t count)
 #ifdef __GNUC__
 __attribute__((unused))
 #endif
-static bool write_full(int fd, const void *buf, size_t count)
+static bool write_full(int fd, const void *buf, size_t count, enum fdio_full_flag flags)
 {
 	ssize_t ret;
 	const char *pos;
@@ -52,18 +77,21 @@ static bool write_full(int fd, const void *buf, size_t count)
 		errno = 0;
 		ret = write(fd, pos, count > SSIZE_MAX ? SSIZE_MAX : count);
 		if (ret < 1) {
-			if (errno == EINTR)
-				continue;
-			if (errno == EAGAIN || errno == EWOULDBLOCK) {
-				struct pollfd pfd = {
-					.fd = fd,
-					.events = POLLIN,
-					.revents = 0
-				};
-				if (poll(&pfd, 1, 0))
+			switch (errno) {
+				case EINTR:
+					if (flags & FDIO_FULL_FLAG_INTR)
+						return false;
 					continue;
+				case EAGAIN:
+				#if EAGAIN != EWOULDBLOCK
+				case EWOULDBLOCK:
+				#endif
+					if (flags & FDIO_FULL_FLAG_NB)
+						return false;
+					continue;
+				default:
+					return false;
 			}
-			return false;
 		}
 		pos += ret;
 		count -= ret;
