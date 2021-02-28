@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <stdlib.h>
 #include <unistd.h>
 #include <assert.h>
@@ -152,27 +153,32 @@ void sway_set_urgent(GtkWindow *win)
 {
 	g_autofree char *cmd;
 	char new_title[128] = {0};
-	g_autofree char *old_title = strdup(gtk_window_get_title(win));
+	const char *old_title_ = gtk_window_get_title(win);
+	if (!old_title_) {
+		old_title_ = "rcfvt";
+	}
+	g_autofree char *old_title = strdup(old_title_);
 	srand(time(NULL));
 	for (int i = 0; i < 127; ++i) {
 		new_title[i] = (rand() % 9) + '0';
 	}
 	gtk_window_set_title(win, new_title);
-	if ((asprintf(&cmd, "swaymsg [title=%s] urgent enable")) == -1) {
+	gdk_display_flush(gdk_display_get_default());
+	if ((asprintf(&cmd, "swaymsg '[title=%s]' urgent enable", new_title)) == -1) {
 		return;
 	}
+	printf("%s\n", cmd);
 	system(cmd);
 	gtk_window_set_title(win, old_title);
 }
-
-
-
 
 // set urgent when bell rings.
 void on_bell(VteTerminal *vte, gpointer data)
 {
 	if (!gtk_window_has_toplevel_focus(GTK_WINDOW(data))) {
-		sway_set_urgent(GTK_WINDOW(data));
+		if (getenv("SWAYSOCK")) {
+			sway_set_urgent(GTK_WINDOW(data));
+		}
 		gtk_window_set_urgency_hint(GTK_WINDOW(data), TRUE);
 		if (conf->notify_bell) {
 			notify_plug_termbell(gtk_window_get_title(GTK_WINDOW(data)));
