@@ -161,7 +161,9 @@ void sway_set_urgent(GtkWindow *win)
 	gtk_window_set_title(win, new_title);
 	gdk_display_flush(gdk_display_get_default());
 	assert(snprintf(cmd, sizeof(cmd), "swaymsg '[title=%s]' urgent enable", new_title) == sizeof(cmd) - 1);
-	(void)system(cmd);
+	if (system(cmd)) {
+		g_warning("Could not set urgency hint for sway");
+	}
 	gtk_window_set_title(win, old_title);
 }
 
