@@ -1,4 +1,3 @@
-#define _GNU_SOURCE
 #include <stdlib.h>
 #include <unistd.h>
 #include <assert.h>
@@ -151,24 +150,18 @@ void on_screen_change(GtkWidget *win, GdkScreen *prev, gpointer data) {
 // set urgent on sway hack
 void sway_set_urgent(GtkWindow *win)
 {
-	g_autofree char *cmd;
+	char cmd[160];
 	char new_title[128] = {0};
 	const char *old_title_ = gtk_window_get_title(win);
-	if (!old_title_) {
-		old_title_ = "rcfvt";
-	}
-	g_autofree char *old_title = strdup(old_title_);
+	g_autofree char *old_title = strdup(old_title_ ? old_title_ : "rcfvt");
 	srand(time(NULL));
 	for (int i = 0; i < 127; ++i) {
 		new_title[i] = (rand() % 9) + '0';
 	}
 	gtk_window_set_title(win, new_title);
 	gdk_display_flush(gdk_display_get_default());
-	if ((asprintf(&cmd, "swaymsg '[title=%s]' urgent enable", new_title)) == -1) {
-		return;
-	}
-	printf("%s\n", cmd);
-	system(cmd);
+	assert(snprintf(cmd, sizeof(cmd), "swaymsg '[title=%s]' urgent enable", new_title) == sizeof(cmd) - 1);
+	(void)system(cmd);
 	gtk_window_set_title(win, old_title);
 }
 
