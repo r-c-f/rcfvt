@@ -257,6 +257,7 @@ void conf_load(struct config *conf)
 		g_warning("Could not load complete theme; using defaults");
 		conf->theme.size = 0;
 	}
+	KEYFILE_TRY_GET(kf, "main", "sixel", conf->sixel, false);
 
 	KEYFILE_TRY_GET(kf, "url", "modifiers", mod_names, NULL);
 	if (mod_names) {

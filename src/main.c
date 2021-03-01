@@ -286,6 +286,7 @@ bool term_start(GSList **l, char **argv)
 	//Set other options
 	vte_terminal_set_audible_bell(t->vte, conf->beep_bell);
 	vte_terminal_set_allow_hyperlink(t->vte, conf->url_osc8);
+	vte_terminal_set_enable_sixel(t->vte, conf->sixel);
 	//Spawn shell
 #if (VTE_MAJOR_VERSION < 1) && (VTE_MINOR_VERSION < 52)
         //FIX for https://gitlab.gnome.org/GNOME/vte/issues/7

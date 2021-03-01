@@ -30,6 +30,7 @@ struct config {
 	bool select_to_clipboard;
 	struct theme theme;
 	GdkModifierType url_modifiers;
+	bool sixel;
 	char *url_regex;
 	char *url_action;
 	bool beep_bell;
