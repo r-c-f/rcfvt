@@ -153,7 +153,7 @@ void sway_set_urgent(GtkWindow *win)
 	char cmd[160];
 	char new_title[128] = {0};
 	const char *old_title_ = gtk_window_get_title(win);
-	g_autofree char *old_title = strdup(old_title_ ? old_title_ : "rcfvt");
+	g_autofree char *old_title = g_strdup(old_title_ ? old_title_ : "rcfvt");
 	srand(time(NULL));
 	for (int i = 0; i < 127; ++i) {
 		new_title[i] = (rand() % 9) + '0';
