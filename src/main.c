@@ -150,14 +150,10 @@ void on_screen_change(GtkWidget *win, GdkScreen *prev, gpointer data) {
 // set urgent on sway hack
 void sway_set_urgent(GtkWindow *win)
 {
-	char cmd[160];
-	char new_title[128] = {0};
+	char cmd[69];
 	const char *old_title_ = gtk_window_get_title(win);
 	g_autofree char *old_title = g_strdup(old_title_ ? old_title_ : "rcfvt");
-	srand(time(NULL));
-	for (int i = 0; i < 127; ++i) {
-		new_title[i] = (rand() % 9) + '0';
-	}
+	g_autofree char *new_title = g_uuid_string_random();
 	gtk_window_set_title(win, new_title);
 	gdk_display_flush(gdk_display_get_default());
 	assert(snprintf(cmd, sizeof(cmd), "swaymsg '[title=%s]' urgent enable", new_title) == sizeof(cmd) - 1);
