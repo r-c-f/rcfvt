@@ -27,6 +27,9 @@ static VteRegex *urlre;
 //Configuration
 static struct config *conf;
 
+//Program name -- for setting default title
+static char *prog_name;
+
 // update_visuals updates the video display format of the screen for the given
 // window.
 void update_visuals(GtkWidget *win) {
@@ -152,7 +155,7 @@ void sway_set_urgent(GtkWindow *win)
 {
 	char cmd[69];
 	const char *old_title_ = gtk_window_get_title(win);
-	g_autofree char *old_title = g_strdup(old_title_ ? old_title_ : "rcfvt");
+	g_autofree char *old_title = g_strdup(old_title_ ? old_title_ : prog_name);
 	g_autofree char *new_title = g_uuid_string_random();
 	gtk_window_set_title(win, new_title);
 	gdk_display_flush(gdk_display_get_default());
@@ -287,6 +290,8 @@ bool term_start(GSList **l, char **argv)
         //proper way.
         vte_terminal_spawn_async(t->vte, 0, NULL, argv, NULL, 0, NULL, NULL, NULL, conf->spawn_timeout, NULL, &on_shell_spawn, argv);
 #endif
+	//set default title
+	gtk_window_set_title(t->win, prog_name);
 	//Show the window
 	gtk_widget_show_all(GTK_WIDGET(t->win));
 
@@ -314,6 +319,8 @@ int main(int argc, char **argv)
 
 	GError *err;
 	GSList *terms = NULL;
+
+	prog_name = argv[0];
 
 	gtk_init(&argc, &argv);
 
